@@ -4,35 +4,31 @@ import os
 
 
 def menu():
+
+    header()
+
     print("Webcomic Checker. Enter 'help' to for a list of comands\n")
+
+    command_list()
 
     while True:
 
-        commands = """
-        'create set' :   make a new set of comics\n
-        'check set'  :   check the comics within a specified set\n
-        'info'       :   information on how to use this program. You should run this first \n
-        'see_sets'   :   view your sets\n
-        'edit_sets'  :   edit your sets\n
-        'delete_set' :   delete a set\n
-        'quit'       :   close the program \n
-
-        """
-
         dec = input('What would you like to do?\n')
 
-        if dec == 'help':
-            print(commands)
-        elif dec == 'create_set':
+        if dec == '1':
             create_set()
-        elif dec == 'check_set':
+        elif dec == '2':
             check_set()
-        elif dec == 'see_sets':
+        elif dec == '3':
             see_sets()
-        elif dec == 'edit_sets':
+        elif dec == '4':
             edit_sets()
-        elif dec == 'delete_set':
+        elif dec == '5':
             delete_set()
+        elif dec == '6':
+            info()
+        elif dec == '7':
+            command_list()
         elif dec == 'quit':
             break
         else:
@@ -155,7 +151,7 @@ def faliure_mode(name, dicname, dictxt):
             os.remove('Desktop/Coding_Projects/Webcomic_Checker/comics/' + dictxt + '.txt')
             del set[set.index(dic)]
             if bool(set) is False:
-                print('After removing the comics, the set was found to be empty and therefore delete.')
+                print('After removing the comics, the set was found to be empty and therefore deleted.')
                 os.remove('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json')
                 return
             with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json', 'w') as f_obj:
@@ -301,6 +297,20 @@ def delete_set():
     if dec.upper() == 'N':
         pass
 
+def command_list():
+    print("""
+
+    [1] :   make a new set of comics
+    [2] :   check the comics within a specified set
+    [3] :   view your sets
+    [4] :   edit your sets
+    [5] :   delete a set
+    [6] :   information on how to use this program. You should run this first
+    [7] :   list of commands
+
+    quit  :   close the program
+
+     """)
 
 #Possible refactor needed with prime_set and save_set
 
@@ -350,7 +360,31 @@ def info():
     you will need to manually enter the proper posistion. Remember to start counting
     from zero, because thats where computers start at. \n
 
+    ---------------------------------------------------------------------------
+
+    Prompts and Particularities
+
+    At times, you will be given a Y/N prompt. This a simple yes or no question
+    and you only have to input a singular 'y' or 'n' to denote your response
+
+    For the most part, inputing the wrong command or string will cause whatever
+    action you're performing to default back to the main prompt.
+
+    
+
+
+
     Now you are all done! I hope you make use of this program.
 
     """
     )
+
+def header():
+
+    print(' __      __      ___.                        .__         _________ .__                   __ ')
+    print('/  \    /  \ ____\_ |__   ____  ____   _____ |__| ____   \_   ___ \|  |__   ____   ____ |  | __ ___________')
+    print('\   \/\/   // __ \| __ \_/ ___\/  _ \ /     \|  |/ ___\  /    \  \/|  |  \_/ __ \_/ ___\|  |/ // __ \_  __ \ ')
+    print(' \        /\  ___/| \_\ \  \__(  <_> )  Y Y  \  \  \___  \     \___|   Y  \  ___/\  \___|    <\  ___/|  | \/')
+    print('  \__/\  /  \___  >___  /\___  >____/|__|_|  /__|\___  >  \______  /___|  /\___  >\___  >__|_ \ \___  >__|')
+    print('       \/       \/    \/     \/            \/        \/          \/     \/     \/     \/     \/    \/    ')
+    print('\n\n')
