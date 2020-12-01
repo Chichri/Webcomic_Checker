@@ -7,13 +7,15 @@ def menu():
 
     header()
 
-    print("Webcomic Checker. Enter 'help' to for a list of comands\n")
+    print("Webcomic Checker. Check slow webcomics quickly. By Chichri\n")
 
     command_list()
-
+    #Prints out initial command list
     while True:
 
         dec = input('What would you like to do?\n')
+
+        dec = dec.rstrip()
 
         if dec == '1':
             create_set()
@@ -33,10 +35,11 @@ def menu():
             break
         else:
             print("I'm sorry, I didn't recognize that command.")
-
+#menu. Creates the elseif main command loop
 def create_set():
     dec = input('You are about to create a new set of comics. '
     'You will need all the information neccissary to procced. Y/N\n')
+    dec = dec.rstrip()
     if dec.upper() == 'N':
         pass
     if dec.upper() == 'Y':
@@ -44,34 +47,48 @@ def create_set():
         flag = True
         while flag:
             name = input('Name\n')
+            #Name of the comic
             url = input('Url\n')
+            #homepage url
             txt = input('Text file\n')
+            #name of the text file
             pos = 0
+            #Position of the newlink
             lks = 0
+            #flag for if links fail
             f = 0
+            #flag for if the main url fails
             comic = {'name': name, 'url': url, 'txt': txt, 'pos': pos, 'lks': lks, 'f' : f}
+            #the assembled set
             new_set.append(comic)
 
             dec = input('Next comic? Y/N\n')
+            dec = dec.rstrip()
             if dec.upper() == 'Y':
                 continue
             if dec.upper() == 'N':
                 handle(new_set)
                 break
+#create_set. The main function for making a set. It calls many of the funtions-
+#-below The main concept is that it takeas a couple arguments and sets up the-
+#-sets, which are then processed by the functions below.
 
 #FUNCTIONS CALLED BY CREATE_SET()------------------------------------------
 
 def handle(new_set):
     print(new_set)
     dec = input('This will be the set you are about to create. Is this okay? Y/N\n')
+    dec = dec.rstrip()
     if dec.upper() == 'Y':
         save_set(new_set)
     if dec.upper() == 'N':
         dec = input('Start over? Y/N\n')
+        dec = dec.rstrip()
         if dec.upper() == 'Y':
             create_set()
         if dec.upper() == 'N':
             handle(new_set)
+#handle. Shuffles the set to either be saved or to go back to make a new one
 
 def save_set(new_set):
     name = input('What will the name of this new set be?\n')
@@ -80,6 +97,7 @@ def save_set(new_set):
     prime_set(name)
     set_pos(name)
     fst_check(name)
+#Begins the process of saving a set through 3 main functions
 
 def set_pos(name):
         with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json') as f_obj:
@@ -88,6 +106,9 @@ def set_pos(name):
                 comic = Checker(dic['url'], dic['txt'], dic['pos'])
                 if comic.links == 'Something has gone wrong':
                     dic['f'] = 1
+                #A little cheeky flag. If the main url failed, it creates a-
+                #flag that deletes the comic all the way down the pipeline.
+                #Also excuses the condemmed comic from a lot of work
                 if dic['f'] == 0:
                     pos_link = input('What is the newest link for ' + dic['name'] + '?\n')
                     try:
@@ -98,6 +119,8 @@ def set_pos(name):
                         print('Error with ' + dic['name'] + '. The position was not found.' )
                         dic['lks'] = 1
                         dic['pos'] = 0
+                        #lks, a flag which triggers when the secondary link-
+                        #-fails. Triggers manual_links later on.
                 with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json', 'w') as f_obj:
                      json.dump(set, f_obj)
                      f_obj.close()
@@ -105,6 +128,8 @@ def set_pos(name):
                 if dic['f'] == 1:
                     pass
             manual_links(name)
+#set_pos. Certifies the 'position', the index in the list of links pulled by-
+#-the requests module. Checks to see if there was an error with the links
 
 def manual_links(name):
     with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json') as f_obj:
@@ -122,15 +147,57 @@ def manual_links(name):
             json.dump(set, f_obj)
         if dic['f'] is 1:
             pass
+#manual_links. If there was an error setting up the links, this function is-
+#-called which prints out the entirety of the links and lets the user select-
+#-them manunal
 
 def prime_set(name):
+    disc_names = []
     with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json') as f_obj:
         set = json.load(f_obj)
-        for dic in set:
-            filename = dic['txt']
+        for comic in set:
+            disc_names = comic['name']
+        f_obj.close()
+    #Gets discrimnating comic names to avoid comic being checked against itself
+
+    sets = os.listdir('Desktop/Coding_Projects/Webcomic_Checker/sets/')
+    text_files = []
+    txt_names = []
+    for set in sets:
+        with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + set) as f_obj:
+            text_set = json.load(f_obj)
+            text_files.append(text_set)
+            f_obj.close()
+    for tlist in text_files:
+        for tdic in tlist:
+            if tdic['name'] in disc_names:
+                pass
+            else:
+                txt_names.append(tdic['txt'])
+
+    #Gets the name of all current txt names without the ones belonging to the-
+    #-sets. Without those in the set itself
+
+    with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json') as f_obj:
+        set = json.load(f_obj)
+        f_obj.close()
+    for dic in set:
+        filename = dic['txt']
+        if filename in txt_names:
+            print("You've given a text file a name another text file has. Please give it a new one.\n")
+            for comic in set:
+                tname = input('Name\n')
+                comic['txt'] = tname
+            with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json', 'w') as f_obj:
+                json.dump(set, f_obj)
+                f_obj.close()
+            prime_set(name)
+        else:
             f = open('Desktop/Coding_Projects/Webcomic_Checker/comics/' + filename + '.txt', 'w+')
             f.write('Primer')
             f.close()
+#prime_set. Creates a text file and writes to it so it can be manipulated later.
+#Also checks for duplicate text file names
 
 def fst_check(name):
     with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json') as f_obj:
@@ -141,6 +208,9 @@ def fst_check(name):
                 comic.check()
             else:
                 faliure_mode(name, dic['name'], dic['txt'])
+#Checks the comic once internally so that you don't get a false positive when-
+#-you check it for the first time. Also the check point for the failiure-
+#-parameter, which if triggered intiates faliure_mode
 
 def faliure_mode(name, dicname, dictxt):
     with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json') as f_obj:
@@ -156,6 +226,8 @@ def faliure_mode(name, dicname, dictxt):
                 return
             with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json', 'w') as f_obj:
                 json.dump(set, f_obj)
+#Faliure_mode. Called if the basic url for the comic was miss-entered. Wipes-
+#-the comic from the set, and the set if it ends up empty the set is wiped too.
 
     return
 #CHECK_SET AND OTHERS---------------------------------------------------------
@@ -170,23 +242,34 @@ def check_set():
         return
     for dic in set:
         comic = Checker(dic['url'], dic['txt'], dic['pos'])
-        print(dic['name'] + ': ' + comic.check())
+        if comic.check() == 'This comic has updated':
+            print(dic['name'] + ': ' + comic.check() + ' ' + '\033[32m' + comic.most_recent + '\033[0m')
+        elif comic.check() == 'This comic has not been updated':
+            print(dic['name'] + ': ' + comic.check())
+#check_set. Calls check set in the Checker class. Checks the set. Can't get-
+#-much similar then that.
 
 def see_sets():
+    print('\n')
     sets = os.listdir('Desktop/Coding_Projects/Webcomic_Checker/sets/')
     for set in sets:
         print(set)
     print('\n')
-    name = input('Which set would you like to view?\n')
-    try:
-        with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json') as f_obj:
-            print('The comics within this set are:')
-            set = json.load(f_obj)
-            for dic in set:
-                print(dic['name'])
-    except FileNotFoundError:
-        print('That set does not exist')
+    dec = input('Would you like to view the comics of a set? Y/N\n')
+    if dec.upper() == 'N':
         return
+    elif dec.upper() == 'Y':
+        name = input('Which set would you like to view?\n')
+        try:
+            with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json') as f_obj:
+                print('The comics within this set are:')
+                set = json.load(f_obj)
+                for dic in set:
+                    print(dic['name'])
+        except FileNotFoundError:
+            print('That set does not exist')
+            return
+#see_sets. Prints out all the sets to the console.
 
 def edit_sets():
     name = input('Which set would you like to edit?\n')
@@ -198,12 +281,15 @@ def edit_sets():
         print('That set does not exist')
         return
     dec = input('Would you like to add or remove?\n')
+    dec = dec.rstrip()
     if dec == 'add':
         add_set(set, name)
     if dec == 'remove':
         remove_set(set, name)
     if dec == 'back':
         pass
+#edit_sets. The first step to editing sets. Shuffles the user around for-
+#-confirmation of what they exactly want to do.
 
 def add_set(set, name):
     name = name
@@ -218,15 +304,18 @@ def add_set(set, name):
     set.append(comic)
 
     m_handle(set, name)
+#add_set. Adds another comic to a set.
 
 def m_handle(set, name):
     name = name
     dec = input('Another comic? Y/N\n')
+    dec = dec.rstrip()
     if dec.upper() == 'Y':
         add_set(set)
     if dec.upper() == 'N':
         print(set)
         dec = input('Are you okay with the new set Y/N:')
+        dec = dec.rstrip()
         if dec.upper() == 'Y':
             with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json', 'w') as f_obj:
                 json.dump(set, f_obj)
@@ -235,12 +324,14 @@ def m_handle(set, name):
             m_handle(set, name)
         if dec == 'back':
             pass
+#m_handle. Confirms adding another comic to a set, after some more shuffling.
 
 def prime_comic(comic):
     filename = comic['txt']
     f = open('Desktop/Coding_Projects/Webcomic_Checker/comics/' + filename + '.txt', 'w+')
     f.write('Primer')
     f.close()
+#prime_comic. Primes a comic that hasn't been added in the creation of a set.
 
 def set_pos_com(comic):
     temp = comic
@@ -249,7 +340,7 @@ def set_pos_com(comic):
     pos = temp.links.index(pos_link)
     comic['pos'] = pos
     return comic
-
+#set_pos_com. Sets the positon of a comic not added in the creation of a set.
 
 def remove_set(set, name):
     names = []
@@ -269,6 +360,7 @@ def remove_set(set, name):
                     with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json', 'w') as f_obj:
                         json.dump(newset, f_obj)
                     dec = input('Would you like to remove another? Y/N')
+                    dec = dec.rstrip()
                     if dec.upper() == 'Y':
                         remove_set(newset, name)
                     if dec.upper() == 'N':
@@ -278,9 +370,11 @@ def remove_set(set, name):
     else:
         print('That comic is not in this set')
         remove_set(set, name)
+#remove_set. Removes comics from sets. Bit of a misnomer on this one.
 
 def delete_set():
     dec = input('You want to delete a set? Y/N \n')
+    dec = dec.rstrip()
     if dec.upper() == 'Y':
         name = input('What set would you like to delete?\n')
         try:
@@ -296,19 +390,19 @@ def delete_set():
         pass
     if dec.upper() == 'N':
         pass
+#delete_set. Deletes a set and it is related files in its enterity.
 
 def command_list():
     print("""
 
-    [1] :   make a new set of comics
-    [2] :   check the comics within a specified set
-    [3] :   view your sets
-    [4] :   edit your sets
-    [5] :   delete a set
-    [6] :   information on how to use this program. You should run this first
-    [7] :   list of commands
-
-    quit  :   close the program
+[\033[32m1\033[0m] :   make a new set of comics
+[\033[32m2\033[0m] :   check the comics within a specified set
+[\033[32m3\033[0m] :   view your sets
+[\033[32m4\033[0m] :   edit your sets
+[\033[32m5\033[0m] :   delete a set
+[\033[32m6\033[0m] :   information on how to use this program. You should run this first
+[\033[32m7\033[0m] :   list of commands
+quit :   close the program
 
      """)
 
@@ -370,7 +464,7 @@ def info():
     For the most part, inputing the wrong command or string will cause whatever
     action you're performing to default back to the main prompt.
 
-    
+
 
 
 
