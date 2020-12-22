@@ -67,13 +67,34 @@ def create_set():
             if dec.upper() == 'Y':
                 continue
             if dec.upper() == 'N':
-                handle(new_set)
+                handle(txt_check(new_set))
+                #txt_check works, figure out why its not friggen passing off correctly
                 break
 #create_set. The main function for making a set. It calls many of the funtions-
 #-below The main concept is that it takeas a couple arguments and sets up the-
 #-sets, which are then processed by the functions below.
 
 #FUNCTIONS CALLED BY CREATE_SET()------------------------------------------
+
+def txt_check(new_set):
+    names = []
+    for dic in new_set:
+        names.append(dic['txt'])
+    if len(names) != len(set(names)):
+    #Checks for duplicate txt names
+        for dic in new_set:
+            checkingtxt = dic['txt']
+            discname = dic['name']
+            for dic in new_set:
+                if discname == dic['name']:
+                    pass
+                if dic['txt'] == checkingtxt:
+                    newname = input(dic['name'] + "'s txt name was shared with another txt name in this set. Please give it a new name.\n")
+                    dic['txt'] = newname
+        return txt_check(new_set)
+    else:
+        return new_set
+#txt_check. Checks for txt name duplicates in sets being created
 
 def handle(new_set):
     print(new_set)
@@ -97,7 +118,7 @@ def save_set(new_set):
     prime_set(name)
     set_pos(name)
     fst_check(name)
-#Begins the process of saving a set through 3 main functions
+#save_set. Begins the process of saving a set through 3 main functions
 
 def set_pos(name):
         with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json') as f_obj:
@@ -156,10 +177,9 @@ def prime_set(name):
     with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json') as f_obj:
         set = json.load(f_obj)
         for comic in set:
-            disc_names = comic['name']
+            disc_names.append(comic['name'])
         f_obj.close()
-    #Gets discrimnating comic names to avoid comic being checked against itself
-
+    #Gets the names of the comics in the set being checked
     sets = os.listdir('Desktop/Coding_Projects/Webcomic_Checker/sets/')
     text_files = []
     txt_names = []
@@ -174,9 +194,8 @@ def prime_set(name):
                 pass
             else:
                 txt_names.append(tdic['txt'])
-
-    #Gets the name of all current txt names without the ones belonging to the-
-    #-sets. Without those in the set itself
+    #Gets the name of all current txt names without the ones belonging to set-
+    #-being checked using the sets names
 
     with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json') as f_obj:
         set = json.load(f_obj)
@@ -184,20 +203,22 @@ def prime_set(name):
     for dic in set:
         filename = dic['txt']
         if filename in txt_names:
-            print("You've given a text file a name another text file has. Please give it a new one.\n")
             for comic in set:
-                tname = input('Name\n')
-                comic['txt'] = tname
+                if comic['txt'] in txt_names:
+                    print("You've given " + comic['name'] +  "'s' text file a name another text file has. Please give it a new one.\n")
+                    tname = input('Name\n')
+                    comic['txt'] = tname
             with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json', 'w') as f_obj:
                 json.dump(set, f_obj)
                 f_obj.close()
-            prime_set(name)
+            return prime_set(name)
         else:
             f = open('Desktop/Coding_Projects/Webcomic_Checker/comics/' + filename + '.txt', 'w+')
             f.write('Primer')
             f.close()
 #prime_set. Creates a text file and writes to it so it can be manipulated later.
-#Also checks for duplicate text file names
+#Also checks for duplicate text file names in sets being created with outside-
+#-sest so that no duplicates appear
 
 def fst_check(name):
     with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json') as f_obj:
@@ -208,9 +229,9 @@ def fst_check(name):
                 comic.check()
             else:
                 faliure_mode(name, dic['name'], dic['txt'])
-#Checks the comic once internally so that you don't get a false positive when-
-#-you check it for the first time. Also the check point for the failiure-
-#-parameter, which if triggered intiates faliure_mode
+#fst_check. Checks the comic once internally so that you don't get a false-
+#-positive when you check it for the first time. Also the check point for the-
+#-failiure parameter, which if triggered intiates faliure_mode.
 
 def faliure_mode(name, dicname, dictxt):
     with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json') as f_obj:
@@ -226,10 +247,11 @@ def faliure_mode(name, dicname, dictxt):
                 return
             with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json', 'w') as f_obj:
                 json.dump(set, f_obj)
-#Faliure_mode. Called if the basic url for the comic was miss-entered. Wipes-
+#faliure_mode. Called if the basic url for the comic was miss-entered. Wipes-
 #-the comic from the set, and the set if it ends up empty the set is wiped too.
 
     return
+
 #CHECK_SET AND OTHERS---------------------------------------------------------
 
 def check_set():
@@ -385,7 +407,7 @@ def delete_set():
             return
         for dic in set:
             os.remove('Desktop/Coding_Projects/Webcomic_Checker/comics/' + dic['txt'] + '.txt')
-            os.remove('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json')
+        os.remove('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json')
         print('Set removed')
         pass
     if dec.upper() == 'N':
@@ -405,8 +427,7 @@ def command_list():
 quit :   close the program
 
      """)
-
-#Possible refactor needed with prime_set and save_set
+#command_list. Prints the list of primary commands availble to the user
 
 def info():
     print("""
@@ -464,7 +485,10 @@ def info():
     For the most part, inputing the wrong command or string will cause whatever
     action you're performing to default back to the main prompt.
 
+    Don't give text files the same name; you'll be routed if you do
 
+    When using this program, you should maximize your window. Text can be affected
+    by the edge of the border.
 
 
 
@@ -472,6 +496,7 @@ def info():
 
     """
     )
+#info. Prints information on the program
 
 def header():
 
@@ -482,3 +507,4 @@ def header():
     print('  \__/\  /  \___  >___  /\___  >____/|__|_|  /__|\___  >  \______  /___|  /\___  >\___  >__|_ \ \___  >__|')
     print('       \/       \/    \/     \/            \/        \/          \/     \/     \/     \/     \/    \/    ')
     print('\n\n')
+#header. Prints this snazzy ASCII art header. Props to patorjk. 
