@@ -1,5 +1,7 @@
 import requests
 from bs4 import BeautifulSoup, SoupStrainer
+import os
+path = os.path.dirname(os.path.abspath(__file__))
 
 class Checker():
     def __init__(self, url, file, position):
@@ -33,7 +35,7 @@ class Checker():
     #-If something goes wrong, it triggers a flag which triggers manual_links.
 
     def last_recent(self):
-        with open('Desktop/Coding_Projects/Webcomic_Checker/comics/'+ self.file + '.txt') as f_obj:
+        with open(path + '/comics/'+ self.file + '.txt') as f_obj:
             last_recent = f_obj.read()
         return last_recent.rstrip()
     #last_recent. Returns the last most recent comic url stored in the text file.
@@ -44,7 +46,7 @@ class Checker():
 
     def check(self):
         if str(self.most_recent) != self.last_recent:
-            with open('Desktop/Coding_Projects/Webcomic_Checker/comics/'+ self.file + '.txt', 'w') as f_obj:
+            with open(path + '/comics/'+ self.file + '.txt', 'w') as f_obj:
                 f_obj.write(str(self.most_recent))
             return 'This comic has updated'
         if str(self.most_recent) == self.last_recent:
@@ -55,4 +57,3 @@ class Checker():
     def print_links(self):
         print(self.links)
     #print_links. Prints the links
- 

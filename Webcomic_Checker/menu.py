@@ -1,7 +1,8 @@
 import json
 from checker import Checker
 import os
-
+path = os.path.dirname(os.path.abspath(__file__))
+#gets current path
 
 def menu():
 
@@ -36,6 +37,7 @@ def menu():
         else:
             print("I'm sorry, I didn't recognize that command.")
 #menu. Creates the elseif main command loop
+
 def create_set():
     dec = input('You are about to create a new set of comics. '
     'You will need all the information neccissary to procced. Y/N\n')
@@ -113,7 +115,7 @@ def handle(new_set):
 
 def save_set(new_set):
     name = input('What will the name of this new set be?\n')
-    with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json', 'w') as f_obj:
+    with open(path + '/sets/' + name + '.json', 'w') as f_obj:
         json.dump(new_set, f_obj)
     prime_set(name)
     set_pos(name)
@@ -121,7 +123,7 @@ def save_set(new_set):
 #save_set. Begins the process of saving a set through 3 main functions
 
 def set_pos(name):
-        with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json') as f_obj:
+        with open(path + '/sets/' + name + '.json') as f_obj:
             set = json.load(f_obj)
             for dic in set:
                 comic = Checker(dic['url'], dic['txt'], dic['pos'])
@@ -142,7 +144,7 @@ def set_pos(name):
                         dic['pos'] = 0
                         #lks, a flag which triggers when the secondary link-
                         #-fails. Triggers manual_links later on.
-                with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json', 'w') as f_obj:
+                with open(path + '/sets/' + name + '.json', 'w') as f_obj:
                      json.dump(set, f_obj)
                      f_obj.close()
                 f_obj.close()
@@ -153,7 +155,7 @@ def set_pos(name):
 #-the requests module. Checks to see if there was an error with the links
 
 def manual_links(name):
-    with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json') as f_obj:
+    with open(path + '/sets/' + name + '.json') as f_obj:
         set = json.load(f_obj)
     for dic in set:
         if dic['lks'] is 1 and dic['f'] is 0:
@@ -164,7 +166,7 @@ def manual_links(name):
             print('Current posistion: ' + str(dic['pos']))
             pos = input('Please check if the link specified is correct. If not, replace the postion\n')
             dic['pos'] = int(pos)
-        with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json', 'w') as f_obj:
+        with open(path + '/sets/' + name + '.json', 'w') as f_obj:
             json.dump(set, f_obj)
         if dic['f'] is 1:
             pass
@@ -174,17 +176,17 @@ def manual_links(name):
 
 def prime_set(name):
     disc_names = []
-    with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json') as f_obj:
+    with open(path + '/sets/' + name + '.json') as f_obj:
         set = json.load(f_obj)
         for comic in set:
             disc_names.append(comic['name'])
         f_obj.close()
     #Gets the names of the comics in the set being checked
-    sets = os.listdir('Desktop/Coding_Projects/Webcomic_Checker/sets/')
+    sets = os.listdir(path + '/sets/')
     text_files = []
     txt_names = []
     for set in sets:
-        with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + set) as f_obj:
+        with open(path + '/sets/' + set) as f_obj:
             text_set = json.load(f_obj)
             text_files.append(text_set)
             f_obj.close()
@@ -197,7 +199,7 @@ def prime_set(name):
     #Gets the name of all current txt names without the ones belonging to set-
     #-being checked using the sets names
 
-    with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json') as f_obj:
+    with open(path + '/sets/' + name + '.json') as f_obj:
         set = json.load(f_obj)
         f_obj.close()
     for dic in set:
@@ -205,15 +207,15 @@ def prime_set(name):
         if filename in txt_names:
             for comic in set:
                 if comic['txt'] in txt_names:
-                    print("You've given " + comic['name'] +  "'s' text file a name another text file has. Please give it a new one.\n")
+                    print("You've given " + comic['name'] +  "'s' text file a name another text file has. Please give it a new one.")
                     tname = input('Name\n')
                     comic['txt'] = tname
-            with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json', 'w') as f_obj:
+            with open(path + '/sets/' + name + '.json', 'w') as f_obj:
                 json.dump(set, f_obj)
                 f_obj.close()
             return prime_set(name)
         else:
-            f = open('Desktop/Coding_Projects/Webcomic_Checker/comics/' + filename + '.txt', 'w+')
+            f = open(path + '/comics/' + filename + '.txt', 'w+')
             f.write('Primer')
             f.close()
 #prime_set. Creates a text file and writes to it so it can be manipulated later.
@@ -221,7 +223,7 @@ def prime_set(name):
 #-sest so that no duplicates appear
 
 def fst_check(name):
-    with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json') as f_obj:
+    with open(path + '/sets/' + name + '.json') as f_obj:
         set = json.load(f_obj)
         for dic in set:
             if dic['f'] is 0:
@@ -234,7 +236,7 @@ def fst_check(name):
 #-failiure parameter, which if triggered intiates faliure_mode.
 
 def faliure_mode(name, dicname, dictxt):
-    with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json') as f_obj:
+    with open(path + '/sets/' + name + '.json') as f_obj:
         set = json.load(f_obj)
     for dic in set:
         if dicname == dic.get('name'):
@@ -243,9 +245,9 @@ def faliure_mode(name, dicname, dictxt):
             del set[set.index(dic)]
             if bool(set) is False:
                 print('After removing the comics, the set was found to be empty and therefore deleted.')
-                os.remove('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json')
+                os.remove(path + '/sets/' + name + '.json')
                 return
-            with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json', 'w') as f_obj:
+            with open(path + '/sets/' + name + '.json', 'w') as f_obj:
                 json.dump(set, f_obj)
 #faliure_mode. Called if the basic url for the comic was miss-entered. Wipes-
 #-the comic from the set, and the set if it ends up empty the set is wiped too.
@@ -257,7 +259,7 @@ def faliure_mode(name, dicname, dictxt):
 def check_set():
     file = input('Which set are you checking?\n')
     try:
-        with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + file + '.json') as f_obj:
+        with open(path + '/sets/' + file + '.json') as f_obj:
             set = json.load(f_obj)
     except FileNotFoundError:
         print('That set does not exist')
@@ -273,7 +275,7 @@ def check_set():
 
 def see_sets():
     print('\n')
-    sets = os.listdir('Desktop/Coding_Projects/Webcomic_Checker/sets/')
+    sets = os.listdir(path + '/sets/')
     for set in sets:
         print(set)
     print('\n')
@@ -283,7 +285,7 @@ def see_sets():
     elif dec.upper() == 'Y':
         name = input('Which set would you like to view?\n')
         try:
-            with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json') as f_obj:
+            with open(path + '/sets/' + name + '.json') as f_obj:
                 print('The comics within this set are:')
                 set = json.load(f_obj)
                 for dic in set:
@@ -297,7 +299,7 @@ def edit_sets():
     name = input('Which set would you like to edit?\n')
     name = name
     try:
-        with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json') as f_obj:
+        with open(path + '/sets/' + name + '.json') as f_obj:
             set = json.load(f_obj)
     except FileNotFoundError:
         print('That set does not exist')
@@ -339,7 +341,7 @@ def m_handle(set, name):
         dec = input('Are you okay with the new set Y/N:')
         dec = dec.rstrip()
         if dec.upper() == 'Y':
-            with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json', 'w') as f_obj:
+            with open(path + '/sets/' + name + '.json', 'w') as f_obj:
                 json.dump(set, f_obj)
             fst_check(name)
         if dec.upper() == 'N':
@@ -350,7 +352,7 @@ def m_handle(set, name):
 
 def prime_comic(comic):
     filename = comic['txt']
-    f = open('Desktop/Coding_Projects/Webcomic_Checker/comics/' + filename + '.txt', 'w+')
+    f = open(path + '/comics/' + filename + '.txt', 'w+')
     f.write('Primer')
     f.close()
 #prime_comic. Primes a comic that hasn't been added in the creation of a set.
@@ -375,11 +377,11 @@ def remove_set(set, name):
             if dic['name'] == dec:
                 cho = input('You want to remove ' + dic['name'] + '? Y/N: ')
                 if cho.upper() == 'Y':
-                    os.remove('Desktop/Coding_Projects/Webcomic_Checker/comics/' + dic['txt'] + '.txt')
+                    os.remove(path + '/comics/' + dic['txt'] + '.txt')
                     del set[set.index(dic)]
                     newset = set
                     print(newset)
-                    with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json', 'w') as f_obj:
+                    with open(path + '/sets/' + name + '.json', 'w') as f_obj:
                         json.dump(newset, f_obj)
                     dec = input('Would you like to remove another? Y/N')
                     dec = dec.rstrip()
@@ -400,14 +402,14 @@ def delete_set():
     if dec.upper() == 'Y':
         name = input('What set would you like to delete?\n')
         try:
-            with open('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json') as f_obj:
+            with open(path + '/sets/' + name + '.json') as f_obj:
                 set = json.load(f_obj)
         except FileNotFoundError:
             print('Could not find the set. Please try again')
             return
         for dic in set:
-            os.remove('Desktop/Coding_Projects/Webcomic_Checker/comics/' + dic['txt'] + '.txt')
-        os.remove('Desktop/Coding_Projects/Webcomic_Checker/sets/' + name + '.json')
+            os.remove(path + '/comics/' + dic['txt'] + '.txt')
+        os.remove(path + '/sets/' + name + '.json')
         print('Set removed')
         pass
     if dec.upper() == 'N':
@@ -490,6 +492,10 @@ def info():
     When using this program, you should maximize your window. Text can be affected
     by the edge of the border.
 
+    If a comic updates but the link leads to something other then the new comic,
+    it means the postion has broken because the comics website has moved things
+    around. Remove the comic from the set and re-add it to fix the problem 
+
 
 
     Now you are all done! I hope you make use of this program.
@@ -507,4 +513,4 @@ def header():
     print('  \__/\  /  \___  >___  /\___  >____/|__|_|  /__|\___  >  \______  /___|  /\___  >\___  >__|_ \ \___  >__|')
     print('       \/       \/    \/     \/            \/        \/          \/     \/     \/     \/     \/    \/    ')
     print('\n\n')
-#header. Prints this snazzy ASCII art header. Props to patorjk. 
+#header. Prints this snazzy ASCII art header. Props to patorjk.
