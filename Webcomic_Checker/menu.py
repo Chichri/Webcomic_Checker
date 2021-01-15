@@ -162,7 +162,8 @@ def manual_links(name):
             comic = Checker(dic['url'], dic['txt'], dic['pos'])
             print(dic['name'] + ':')
             for link in comic.links:
-                print(link)
+                number = comic.links.index(link)
+                print(str(number) + ' ' +link)
             print('Current posistion: ' + str(dic['pos']))
             pos = input('Please check if the link specified is correct. If not, replace the postion\n')
             dic['pos'] = int(pos)
@@ -186,10 +187,11 @@ def prime_set(name):
     text_files = []
     txt_names = []
     for set in sets:
-        with open(path + '/sets/' + set) as f_obj:
-            text_set = json.load(f_obj)
-            text_files.append(text_set)
-            f_obj.close()
+        if set != '.gitignore':
+            with open(path + '/sets/' + set) as f_obj:
+                text_set = json.load(f_obj)
+                text_files.append(text_set)
+                f_obj.close()
     for tlist in text_files:
         for tdic in tlist:
             if tdic['name'] in disc_names:
@@ -230,18 +232,18 @@ def fst_check(name):
                 comic = Checker(dic['url'], dic['txt'], dic['pos'])
                 comic.check()
             else:
-                faliure_mode(name, dic['name'], dic['txt'])
+                failure_mode(name, dic['name'], dic['txt'])
 #fst_check. Checks the comic once internally so that you don't get a false-
 #-positive when you check it for the first time. Also the check point for the-
-#-failiure parameter, which if triggered intiates faliure_mode.
+#-failiure parameter, which if triggered intiates failure_mode.
 
-def faliure_mode(name, dicname, dictxt):
+def failure_mode(name, dicname, dictxt):
     with open(path + '/sets/' + name + '.json') as f_obj:
         set = json.load(f_obj)
     for dic in set:
         if dicname == dic.get('name'):
             print("One or more of the urls you provided for the homepages didn't work. The comic(s) has been removed from the set")
-            os.remove('Desktop/Coding_Projects/Webcomic_Checker/comics/' + dictxt + '.txt')
+            os.remove(path + '/comics/' + dictxt + '.txt')
             del set[set.index(dic)]
             if bool(set) is False:
                 print('After removing the comics, the set was found to be empty and therefore deleted.')
@@ -249,7 +251,7 @@ def faliure_mode(name, dicname, dictxt):
                 return
             with open(path + '/sets/' + name + '.json', 'w') as f_obj:
                 json.dump(set, f_obj)
-#faliure_mode. Called if the basic url for the comic was miss-entered. Wipes-
+#failure_mode. Called if the basic url for the comic was miss-entered. Wipes-
 #-the comic from the set, and the set if it ends up empty the set is wiped too.
 
     return
@@ -277,7 +279,8 @@ def see_sets():
     print('\n')
     sets = os.listdir(path + '/sets/')
     for set in sets:
-        print(set)
+        if set != '.gitignore':
+            print(set)
     print('\n')
     dec = input('Would you like to view the comics of a set? Y/N\n')
     if dec.upper() == 'N':
