@@ -426,7 +426,7 @@ def command_list():
 [\033[32m5\033[0m] :   delete a set
 [\033[32m6\033[0m] :   information on how to use this program. You should run this first
 [\033[32m7\033[0m] :   list of commands
-quit :   close the program
+quit:   close the program
 
      """)
 #command_list. Prints the list of primary commands availble to the user
@@ -494,7 +494,7 @@ def info():
 
     If a comic updates but the link leads to something other then the new comic,
     it means the postion has broken because the comics website has moved things
-    around. Remove the comic from the set and re-add it to fix the problem 
+    around. Remove the comic from the set and re-add it to fix the problem
 
 
 
