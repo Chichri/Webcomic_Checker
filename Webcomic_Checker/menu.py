@@ -133,7 +133,7 @@ def set_pos(name):
                 #flag that deletes the comic all the way down the pipeline.
                 #Also excuses the condemmed comic from a lot of work
                 if dic['f'] == 0:
-                    pos_link = input('What is the newest link for ' + dic['name'] + '?\n')
+                    pos_link = input('What is the most previous link for ' + dic['name'] + '?\n')
                     try:
                         pos = comic.links.index(pos_link)
                         dic['pos'] = pos
@@ -222,7 +222,7 @@ def prime_set(name):
             f.close()
 #prime_set. Creates a text file and writes to it so it can be manipulated later.
 #Also checks for duplicate text file names in sets being created with outside-
-#-sest so that no duplicates appear
+#-sets so that no duplicates appear
 
 def fst_check(name):
     with open(path + '/sets/' + name + '.json') as f_obj:
@@ -324,9 +324,11 @@ def add_set(set, name):
     url = input('Url\n')
     txt = input('Text file\n')
     pos = 0
-    comic = {'name': cname, 'url': url, 'txt': txt, 'pos': pos}
+    lks = 0 
+    f = 0 
+    comic = {'name': cname, 'url': url, 'txt': txt, 'pos': pos, 'lks': lks, 'f': f}
     prime_comic(comic)
-    comic = set_pos_com(comic)
+    comic = set_pos_com(set, comic)
 
     set.append(comic)
 
@@ -338,7 +340,7 @@ def m_handle(set, name):
     dec = input('Another comic? Y/N\n')
     dec = dec.rstrip()
     if dec.upper() == 'Y':
-        add_set(set)
+        add_set(set, name)
     if dec.upper() == 'N':
         print(set)
         dec = input('Are you okay with the new set Y/N:')
@@ -360,13 +362,22 @@ def prime_comic(comic):
     f.close()
 #prime_comic. Primes a comic that hasn't been added in the creation of a set.
 
-def set_pos_com(comic):
-    temp = comic
-    temp = Checker(temp['url'], temp['txt'], temp['pos'])
-    pos_link = input('What is the newest link for ' + comic['name'] + '?\n')
-    pos = temp.links.index(pos_link)
-    comic['pos'] = pos
-    return comic
+def set_pos_com(set, comic):
+    for dic in set:
+        temp = comic
+        temp = Checker(temp['url'], temp['txt'], temp['pos'])
+        if temp.links == 'Something has gone wrong':
+            dic['f'] = 1
+        if dic['f'] == 0:
+            pos_link = input('What is the newest link for ' + comic['name'] + '?\n')
+            pos = temp.links.index(pos_link)
+    #valueerror occurs here apparently or maybe not
+    #yes it does, but only on completly serverside broken comics 
+            comic['pos'] = pos
+            return comic
+        elif dic['f'] == 1:
+            return comic 
+            
 #set_pos_com. Sets the positon of a comic not added in the creation of a set.
 
 def remove_set(set, name):
@@ -437,13 +448,14 @@ quit:   close the program
 def info():
     print("""
     Hi, and welcome to Webcomic Checker. This program is a webscraping script
-    designed to check webcomics with inconsistent updating schedules en masse
-    so that you don't have to. \n
+    designed to check whether webcomics with inconsistent updating schedules have 
+    updated or not en masse so that you don't have to do it by indiviudally checking 
+    your comics in a web browser. \n
 
     Now first and formost, you'll want to create a set of comics. Within this program,
     a set is a collection of comics that can all be checked at the same time. You
-    can create multiple sets and group them however you like, wheter it be by
-    genre, frequency of updatings, or simply whichever ones you like more.
+    can create multiple sets sorted by genre, frequency of updatings, or simply whichever 
+    ones you like more.
 
     When creating a set, you will be asked to supply two things: the url of the comic
     and a text file. \n
@@ -452,7 +464,7 @@ def info():
     the site and copying the contents of the search bar. This should be the homepage
     of the comic, which is to say that you shouldn't see any 'archive', 'comic#' or
     other identifiers appended to the end of the url. For most comics, this will
-    display the most recent comic, but for some it won't.Just make sure you are
+    display the most recent comic, but for some it won't. Just make sure you are
     entering the homepage url. \n
 
     Next, the text file. When making a set of comics to check, you will be asked
@@ -464,15 +476,20 @@ def info():
     to keep everything organized.\n
 
     Next, the program will ask you to name the set. Again, this is up to you.
-    After providing a name, you will see the names of the comics you entered
-    into that set along with a prompt asking you to provide the most recent
-    link. This is the last step of setting up your set. You will need to provide
-    the link to the most recent comic so internally, it knows where to look
-    when checking the comic in the future. \n
+    After providing a name comes the final part of setting up your set so I'll 
+    try to explain it as clearly as possible. 
+
+    The program will display a 'previous link' prompt. This prompt is asking for 
+    the link to the most previous comic. Most comics have a menu bar with directional 
+    buttons to click to advance forward and backwards through the archive. From the 
+    homepage (eg: the first url you submitted), clicking the back button should 
+    bring you to to a previous comic. The link to this comic is what you need to provide 
+    for this prompt. This link is needed so that internally for the checking of the 
+    comic. \n
 
     If everything goes to plan, that should be it. However, there is a chance that
-    the most recent link wont exaclty match up what it actually is behind the scences.
-    If this happens, it will trigger a manual input where it list each link returned
+    the most previous link wont exaclty match up what it actually is behind the scences.
+    If this happens, it will trigger a manual input where it lists each link returned
     and ask you to just find it. It's unfortunate, but to make it easier, comics
     that were proccesed properly before the manual set kicked in have their proper
     link highlighted in green and the position already listed, so you can just re-enter it.
@@ -495,12 +512,6 @@ def info():
     When using this program, you should maximize your window. Text can be affected
     by the edge of the border.
 
-    If a comic updates but the link leads to something other then the new comic,
-    it means the postion has broken because the comics website has moved things
-    around. Remove the comic from the set and re-add it to fix the problem
-
-
-
     Now you are all done! I hope you make use of this program.
 
     """
@@ -517,3 +528,11 @@ def header():
     print('       \/       \/    \/     \/            \/        \/          \/     \/     \/     \/     \/    \/    ')
     print('\n\n')
 #header. Prints this snazzy ASCII art header. Props to patorjk.
+
+#Things to do: 
+
+#Convert every refrence to newest link to last most previous link 
+#Figure out why add in edit_sets isn't working
+#change the links displayed to when the set updates to just the homepage link 
+#Okay so the Legend of Maxx is just a dead site, but I think that means I need to...reformat how I flag dead comics. 
+
