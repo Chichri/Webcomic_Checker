@@ -269,7 +269,7 @@ def check_set():
     for dic in set:
         comic = Checker(dic['url'], dic['txt'], dic['pos'])
         if comic.check() == 'This comic has updated':
-            print(dic['name'] + ': ' + comic.check() + ' ' + '\033[32m' + comic.most_recent + '\033[0m')
+            print(dic['name'] + ': ' + comic.check() + ' ' + '\033[32m' + dic['url'] + '\033[0m')
         elif comic.check() == 'This comic has not been updated':
             print(dic['name'] + ': ' + comic.check())
 #check_set. Calls check set in the Checker class. Checks the set. Can't get-
@@ -328,7 +328,7 @@ def add_set(set, name):
     f = 0 
     comic = {'name': cname, 'url': url, 'txt': txt, 'pos': pos, 'lks': lks, 'f': f}
     prime_comic(comic)
-    comic = set_pos_com(set, comic)
+    comic = set_pos_com(set, comic, name)
 
     set.append(comic)
 
@@ -362,23 +362,22 @@ def prime_comic(comic):
     f.close()
 #prime_comic. Primes a comic that hasn't been added in the creation of a set.
 
-def set_pos_com(set, comic):
-    for dic in set:
-        temp = comic
-        temp = Checker(temp['url'], temp['txt'], temp['pos'])
-        if temp.links == 'Something has gone wrong':
-            dic['f'] = 1
-        if dic['f'] == 0:
-            pos_link = input('What is the newest link for ' + comic['name'] + '?\n')
-            pos = temp.links.index(pos_link)
+def set_pos_com(set, comic, name):
+    ccomic = Checker(comic['url'], comic['txt'], comic['pos'])
+    if ccomic.links == 'Something has gone wrong':
+        comic['f'] = 1
+    if comic['f'] == 0:
+        pos_link = input('What is the newest link for ' + comic['name'] + '?\n')
+        pos = ccomic.links.index(pos_link)
     #valueerror occurs here apparently or maybe not
     #yes it does, but only on completly serverside broken comics 
-            comic['pos'] = pos
-            return comic
-        elif dic['f'] == 1:
-            return comic 
+        comic['pos'] = pos
+        return comic
+    elif comic['f'] == 1:
+          return comic 
             
 #set_pos_com. Sets the positon of a comic not added in the creation of a set.
+#Okay, I'm gonna remove offending comics here I guess 
 
 def remove_set(set, name):
     names = []
@@ -531,8 +530,6 @@ def header():
 
 #Things to do: 
 
-#Convert every refrence to newest link to last most previous link 
-#Figure out why add in edit_sets isn't working
 #change the links displayed to when the set updates to just the homepage link 
 #Okay so the Legend of Maxx is just a dead site, but I think that means I need to...reformat how I flag dead comics. 
 
