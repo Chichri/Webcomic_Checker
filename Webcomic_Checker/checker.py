@@ -41,7 +41,10 @@ class Checker():
     #last_recent. Returns the last most recent comic url stored in the text file.
 
     def most_recent(self):
-        return self.links[self.position]
+        try:
+            return self.links[self.position]
+        except: 
+            return 'Dead comic' 
     #most_recent. returns the most recent comic url stored in the text file.
 
     def check(self):

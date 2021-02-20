@@ -129,6 +129,8 @@ def set_pos(name):
                 comic = Checker(dic['url'], dic['txt'], dic['pos'])
                 if comic.links == 'Something has gone wrong':
                     dic['f'] = 1
+                if comic.most_recent == 'Dead comic':
+                    dic['f'] = 1 
                 #A little cheeky flag. If the main url failed, it creates a-
                 #flag that deletes the comic all the way down the pipeline.
                 #Also excuses the condemmed comic from a lot of work
@@ -369,15 +371,12 @@ def set_pos_com(set, comic, name):
     if comic['f'] == 0:
         pos_link = input('What is the newest link for ' + comic['name'] + '?\n')
         pos = ccomic.links.index(pos_link)
-    #valueerror occurs here apparently or maybe not
-    #yes it does, but only on completly serverside broken comics 
         comic['pos'] = pos
         return comic
     elif comic['f'] == 1:
           return comic 
             
 #set_pos_com. Sets the positon of a comic not added in the creation of a set.
-#Okay, I'm gonna remove offending comics here I guess 
 
 def remove_set(set, name):
     names = []
@@ -511,6 +510,9 @@ def info():
     When using this program, you should maximize your window. Text can be affected
     by the edge of the border.
 
+    Some comics just flat out don't work with this program :p If this happens, the 
+    offending comic will be removed automatically.
+
     Now you are all done! I hope you make use of this program.
 
     """
@@ -528,8 +530,5 @@ def header():
     print('\n\n')
 #header. Prints this snazzy ASCII art header. Props to patorjk.
 
-#Things to do: 
 
-#change the links displayed to when the set updates to just the homepage link 
-#Okay so the Legend of Maxx is just a dead site, but I think that means I need to...reformat how I flag dead comics. 
 
