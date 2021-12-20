@@ -52,7 +52,7 @@ def create_set():
             #Name of the comic
             url = input('Url\n')
             #homepage url
-            txt = input('Text file\n')
+            txt = maketxt(name) 
             #name of the text file
             pos = 0
             #Position of the newlink
@@ -79,6 +79,7 @@ def create_set():
 #FUNCTIONS CALLED BY CREATE_SET()------------------------------------------
 
 def txt_check(new_set):
+    counter = 1 
     names = []
     for dic in new_set:
         names.append(dic['txt'])
@@ -88,15 +89,21 @@ def txt_check(new_set):
             checkingtxt = dic['txt']
             discname = dic['name']
             for dic in new_set:
-                if discname == dic['name']:
-                    pass
-                if dic['txt'] == checkingtxt:
-                    newname = input(dic['name'] + "'s txt name was shared with another txt name in this set. Please give it a new name.\n")
-                    dic['txt'] = newname
-        return txt_check(new_set)
+                if dic['txt'] == checkingtxt and dic['name'] != discname:
+                    dic['txt'] = checkingtxt + str(counter)
+                    counter += 1 
+        return new_set
     else:
         return new_set
-#txt_check. Checks for txt name duplicates in sets being created
+#txt_check. Makes sure all textfile names are unique
+
+def maketxt(string):
+    chunks = string.split(' ') 
+    txt = '' 
+    for i in chunks: 
+        txt = txt + i[0] 
+    return txt
+#maketxt. Makes the name for the text file of a comic
 
 def handle(new_set):
     print(new_set)
@@ -160,7 +167,7 @@ def manual_links(name):
     with open(path + '/sets/' + name + '.json') as f_obj:
         set = json.load(f_obj)
     for dic in set:
-        if dic['lks'] is 1 and dic['f'] is 0:
+        if dic['lks'] == 1 and dic['f'] == 0:
             comic = Checker(dic['url'], dic['txt'], dic['pos'])
             print(dic['name'] + ':')
             for link in comic.links:
@@ -171,7 +178,7 @@ def manual_links(name):
             dic['pos'] = int(pos)
         with open(path + '/sets/' + name + '.json', 'w') as f_obj:
             json.dump(set, f_obj)
-        if dic['f'] is 1:
+        if dic['f'] == 1:
             pass
 #manual_links. If there was an error setting up the links, this function is-
 #-called which prints out the entirety of the links and lets the user select-
@@ -230,7 +237,7 @@ def fst_check(name):
     with open(path + '/sets/' + name + '.json') as f_obj:
         set = json.load(f_obj)
         for dic in set:
-            if dic['f'] is 0:
+            if dic['f'] == 0:
                 comic = Checker(dic['url'], dic['txt'], dic['pos'])
                 comic.check()
             else:
@@ -280,9 +287,14 @@ def check_set():
 def see_sets():
     print('\n')
     sets = os.listdir(path + '/sets/')
+    print(sets) 
+    if len(sets) == 1: 
+        print("No sets to display") 
+        return 
     for set in sets:
-        if set != '.gitignore':
-            print(set)
+        if set != '.gitignore': 
+            setlist = set.split('.') 
+            print(setlist[0])
     print('\n')
     dec = input('Would you like to view the comics of a set? Y/N\n')
     if dec.upper() == 'N':
@@ -324,15 +336,15 @@ def add_set(set, name):
     name = name
     cname = input('Name\n')
     url = input('Url\n')
-    txt = input('Text file\n')
+    txt = maketxt(cname) 
     pos = 0
     lks = 0 
     f = 0 
     comic = {'name': cname, 'url': url, 'txt': txt, 'pos': pos, 'lks': lks, 'f': f}
-    prime_comic(comic)
     comic = set_pos_com(set, comic, name)
-
     set.append(comic)
+    set = txt_check(set) 
+    prime_comic(comic)
 
     m_handle(set, name)
 #add_set. Adds another comic to a set.
@@ -445,75 +457,60 @@ quit:   close the program
 
 def info():
     print("""
-    Hi, and welcome to Webcomic Checker. This program is a webscraping script
-    designed to check whether webcomics with inconsistent updating schedules have 
-    updated or not en masse so that you don't have to do it by indiviudally checking 
-    your comics in a web browser. \n
+Hi, and welcome to Webcomic Checker. This program is a webscraping script
+that checks whether webcomics with inconsistent updating schedules have 
+updated or not en masse so that you don't have to do it by indiviudally checking 
+your comics in a browser. 
 
-    Now first and formost, you'll want to create a set of comics. Within this program,
-    a set is a collection of comics that can all be checked at the same time. You
-    can create multiple sets sorted by genre, frequency of updatings, or simply whichever 
-    ones you like more.
+To use this program, you'll need to make a set. A set is a collection of comics which 
+can subsequently checked together.When creating a set, you will be asked to supply 
+two things: The name of of comic and the homepage url
 
-    When creating a set, you will be asked to supply two things: the url of the comic
-    and a text file. \n
+Lets talk about the url. You can find the url of your comic by visiting
+the site and copying the contents of the search bar. This should be the homepage
+of the comic, which is to say that you shouldn't see any 'archive', 'comic#' or
+other identifiers appended to the end of the url. For most comics, this will
+display the most recent comic, but for some it won't. Just make sure you are
+entering the homepage url. 
 
-    Firstly, lets talk about the url. You can find the url of your comic by visiting
-    the site and copying the contents of the search bar. This should be the homepage
-    of the comic, which is to say that you shouldn't see any 'archive', 'comic#' or
-    other identifiers appended to the end of the url. For most comics, this will
-    display the most recent comic, but for some it won't. Just make sure you are
-    entering the homepage url. \n
+The program will ask you to name the set. After providing a name comes the final 
+part of setting up your set so I'll try to explain it as clearly as possible. 
 
-    Next, the text file. When making a set of comics to check, you will be asked
-    to enter a 'txt'. This is short for text file, and don't worry, you don't need
-    to make one. A text file for this comic will be generated automatically in the
-    'comics' folder. This is neccsiary for some of the internal workings of
-    the program. All you need to do is provide a sutible name which can be anything,
-    but I would advise making it the same as the name of the comic or an abriviaton
-    to keep everything organized.\n
+The program will display a 'previous link' prompt. This prompt is asking for 
+the link to the most previous comic. Most comics have a menu bar with directional 
+buttons to click to advance forward and backwards through the archive. From the 
+homepage (eg: the first url you submitted), clicking the back button should 
+bring you to to a previous comic. The link to this comic is what you need to provide 
+for this prompt. This link is needed so that internally for the checking of the 
+comic. 
 
-    Next, the program will ask you to name the set. Again, this is up to you.
-    After providing a name comes the final part of setting up your set so I'll 
-    try to explain it as clearly as possible. 
+If everything goes to plan, that should be it. However, there is a chance that
+the most previous link wont exaclty match up what it actually is behind the scences.
+If this happens, it will trigger a manual input where it lists each link returned
+and ask you to just find it. It's unfortunate, but to make it easier, comics
+that were proccesed properly before the manual set kicked in have their proper
+link highlighted in green and the position already listed, so you can just re-enter it.
+For the offending comic however, (and all comics after it, I'm working on this),
+you will need to manually enter the proper posistion. Remember to start counting
+from zero, because thats where computers start at. 
 
-    The program will display a 'previous link' prompt. This prompt is asking for 
-    the link to the most previous comic. Most comics have a menu bar with directional 
-    buttons to click to advance forward and backwards through the archive. From the 
-    homepage (eg: the first url you submitted), clicking the back button should 
-    bring you to to a previous comic. The link to this comic is what you need to provide 
-    for this prompt. This link is needed so that internally for the checking of the 
-    comic. \n
+---------------------------------------------------------------------------
 
-    If everything goes to plan, that should be it. However, there is a chance that
-    the most previous link wont exaclty match up what it actually is behind the scences.
-    If this happens, it will trigger a manual input where it lists each link returned
-    and ask you to just find it. It's unfortunate, but to make it easier, comics
-    that were proccesed properly before the manual set kicked in have their proper
-    link highlighted in green and the position already listed, so you can just re-enter it.
-    For the offending comic however, (and all comics after it, I'm working on this),
-    you will need to manually enter the proper posistion. Remember to start counting
-    from zero, because thats where computers start at. \n
+Prompts and Particularities
 
-    ---------------------------------------------------------------------------
+At times, you will be given a Y/N prompt. This a simple yes or no question
+and you only have to input a singular 'y' or 'n' to denote your response
 
-    Prompts and Particularities
+For the most part, inputing the wrong command or string will cause whatever
+action you're performing to default back to the main prompt.
 
-    At times, you will be given a Y/N prompt. This a simple yes or no question
-    and you only have to input a singular 'y' or 'n' to denote your response
+When using this program, you should maximize your window. Text can be affected
+by the edge of the border.
 
-    For the most part, inputing the wrong command or string will cause whatever
-    action you're performing to default back to the main prompt.
+Some comics just flat out don't work with this program :p If this happens, the 
+offending comic will be removed automatically.
 
-    Don't give text files the same name; you'll be routed if you do
-
-    When using this program, you should maximize your window. Text can be affected
-    by the edge of the border.
-
-    Some comics just flat out don't work with this program :p If this happens, the 
-    offending comic will be removed automatically.
-
-    Now you are all done! I hope you make use of this program.
+Now you are all done! I hope you make use of this program.
 
     """
     )
