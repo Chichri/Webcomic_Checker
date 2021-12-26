@@ -4,7 +4,11 @@ import os
 path = os.path.dirname(os.path.abspath(__file__))
 #gets current path
 
+dev_mode = False 
+#dev_mode determines whether you see information about sets that you only need when your debugging 
+
 def menu():
+    global dev_mode 
 
     header()
 
@@ -12,33 +16,116 @@ def menu():
 
     command_list()
     #Prints out initial command list
+
+    actionlist = ['check','make','view','edit','delete','info','help','quit','dev']
+    #the list of acceptable actions 
+
+
     while True:
 
-        dec = input('What would you like to do?\n')
+        sets = get_sets() 
 
-        dec = dec.rstrip()
+        command = input('> ')
+        command = command.rstrip() 
+        try: 
+            action, set = parse(command) 
+        except TypeError: 
+            print("commands with sets must be separated by a single space") 
+            continue 
 
-        if dec == '1':
-            create_set()
-        elif dec == '2':
-            check_set()
-        elif dec == '3':
-            see_sets()
-        elif dec == '4':
-            edit_sets()
-        elif dec == '5':
-            delete_set()
-        elif dec == '6':
-            info()
-        elif dec == '7':
-            command_list()
-        elif dec == 'quit':
-            break
-        else:
-            print("I'm sorry, I didn't recognize that command.")
+        if action not in actionlist: 
+            print('Command not recognized')
+            continue
+        #checks to see if the passed command is a valid action
+
+        #--only valid actions from this point on-- 
+
+        #These actions are special actions that require no sets 
+        #if invoked, they trigger regardless of whether a set 
+        #was passed or if that set exists or not
+        #The reason for this was that it seemed obstructionary to do otherwise 
+        if action == 'info': 
+            info() 
+            continue 
+        if action == 'help': 
+            help() 
+            continue
+        if action == 'quit':
+            break 
+        if action == 'dev':
+            dev_mode = True 
+            print('Developer mode initiatied')
+            continue 
+
+        if set != False and set in sets:
+        #checks to see if a set was passed, and if that set exists
+        #This chain is for performing actions on existing sets 
+            if action == 'check': 
+                check_set(set)
+            elif action == 'view': 
+                see_sets(set) 
+            elif action == 'edit': 
+                edit_sets(set) 
+            elif action == 'delete': 
+                delete_set(set)
+            else:
+            #if this else is triggered, the action is make, and yet that also means the 
+            #passed set already exists
+                print('You already have a set of that name') 
+
+        if set != False and set not in sets:
+        #this section is for when a set is passed that does not exist
+        #make is the only action that works with non-prexisting sets 
+        #if the action isn't make, it tells the user the set does not exist
+            if action != 'make': 
+                print("That set does not exist") 
+            else: 
+                create_set(set) 
+        
+        if set == False: 
+        #This means a valid action was passed without a set 
+        #besides the specials, the only action this works with is view 
+            if action == 'view': 
+                see_sets()  
+            else: 
+                print('That action requires a set') 
+                continue 
+
 #menu. Creates the elseif main command loop
 
-def create_set():
+#UI FUNCTIONS------------------------------------
+
+def parse(command):
+    chunks = command.split(' ') 
+    if len(chunks) == 1: 
+        action = chunks[0] 
+        return action, False  
+    elif len(chunks) == 2: 
+        action = chunks[0] 
+        set = chunks[1] 
+        return action, set 
+    else: 
+        return False
+
+#parse. Separates an input into an action and a set, acconuting for 
+#when sets are not passed. 
+
+def get_sets():
+    c = 0 
+    sets = os.listdir(path + '/sets/')
+    splitsets = [] 
+    for i in sets: 
+        if i == '.gitignore': 
+            del sets[c] 
+        c += 1
+    for i in sets: 
+        chunks = i.split('.') 
+        splitsets.append(chunks[0]) 
+    return splitsets  
+
+#get_sets. This function returns a list of currently existing sets. 
+
+def create_set(setname):
     dec = input('You are about to create a new set of comics. '
     'You will need all the information neccissary to procced. Y/N\n')
     dec = dec.rstrip()
@@ -48,9 +135,9 @@ def create_set():
         new_set = []
         flag = True
         while flag:
-            name = input('Name\n')
+            name = input('Comic Name\n')
             #Name of the comic
-            url = input('Url\n')
+            url = input('Comic Url\n')
             #homepage url
             txt = maketxt(name) 
             #name of the text file
@@ -69,7 +156,7 @@ def create_set():
             if dec.upper() == 'Y':
                 continue
             if dec.upper() == 'N':
-                handle(txt_check(new_set))
+                handle(txt_check(new_set), setname)
                 #txt_check works, figure out why its not friggen passing off correctly
                 break
 #create_set. The main function for making a set. It calls many of the funtions-
@@ -105,23 +192,34 @@ def maketxt(string):
     return txt
 #maketxt. Makes the name for the text file of a comic
 
-def handle(new_set):
-    print(new_set)
+def devprint(new_set, setname): 
+    if dev_mode == True: 
+        print(setname + ' : ' + str(new_set)) 
+    else:
+        userset = []
+        for comic in new_set: 
+            userset.append(comic['name'])
+            userset.append(comic['url'])
+        print(setname + ' : ' + str(userset)) 
+#devprint. prints different amount of info about sets depending on if developer mode is on
+
+def handle(new_set, setname):
+    devprint(new_set, setname) 
     dec = input('This will be the set you are about to create. Is this okay? Y/N\n')
     dec = dec.rstrip()
     if dec.upper() == 'Y':
-        save_set(new_set)
+        save_set(new_set, setname)
     if dec.upper() == 'N':
         dec = input('Start over? Y/N\n')
         dec = dec.rstrip()
         if dec.upper() == 'Y':
             create_set()
         if dec.upper() == 'N':
-            handle(new_set)
+            handle(new_set,setname)
 #handle. Shuffles the set to either be saved or to go back to make a new one
 
-def save_set(new_set):
-    name = input('What will the name of this new set be?\n')
+def save_set(new_set, setname):
+    name = setname 
     with open(path + '/sets/' + name + '.json', 'w') as f_obj:
         json.dump(new_set, f_obj)
     prime_set(name)
@@ -267,8 +365,8 @@ def failure_mode(name, dicname, dictxt):
 
 #CHECK_SET AND OTHERS---------------------------------------------------------
 
-def check_set():
-    file = input('Which set are you checking?\n')
+def check_set(setname):
+    file = setname
     try:
         with open(path + '/sets/' + file + '.json') as f_obj:
             set = json.load(f_obj)
@@ -281,26 +379,36 @@ def check_set():
             print(dic['name'] + ': ' + comic.check() + ' ' + '\033[32m' + dic['url'] + '\033[0m')
         elif comic.check() == 'This comic has not been updated':
             print(dic['name'] + ': ' + comic.check())
-#check_set. Calls check set in the Checker class. Checks the set. Can't get-
-#-much similar then that.
+#check_set. Calls check set in the Checker class. Checks each comic in the set. 
 
-def see_sets():
-    print('\n')
-    sets = os.listdir(path + '/sets/')
-    print(sets) 
-    if len(sets) == 1: 
-        print("No sets to display") 
-        return 
-    for set in sets:
-        if set != '.gitignore': 
-            setlist = set.split('.') 
-            print(setlist[0])
-    print('\n')
-    dec = input('Would you like to view the comics of a set? Y/N\n')
-    if dec.upper() == 'N':
-        return
-    elif dec.upper() == 'Y':
-        name = input('Which set would you like to view?\n')
+def see_sets(setname=False):
+    if setname == False: 
+        print('\n')
+        sets = os.listdir(path + '/sets/')
+        if len(sets) == 1: 
+            print("No sets to display") 
+            return 
+        for set in sets:
+            if set != '.gitignore': 
+                setlist = set.split('.') 
+                print(setlist[0])
+        print('\n')
+        dec = input('Would you like to view the comics of a set? Y/N\n')
+        if dec.upper() == 'N':
+            return
+        elif dec.upper() == 'Y':
+            name = input('Which set would you like to view?\n')
+            try:
+                with open(path + '/sets/' + name + '.json') as f_obj:
+                    print('The comics within this set are:')
+                    set = json.load(f_obj)
+                    for dic in set:
+                        print(dic['name'])
+            except FileNotFoundError:
+                print('That set does not exist')
+                return
+    else: 
+        name = setname
         try:
             with open(path + '/sets/' + name + '.json') as f_obj:
                 print('The comics within this set are:')
@@ -310,10 +418,11 @@ def see_sets():
         except FileNotFoundError:
             print('That set does not exist')
             return
+
 #see_sets. Prints out all the sets to the console.
 
-def edit_sets():
-    name = input('Which set would you like to edit?\n')
+def edit_sets(setname):
+    name = setname
     name = name
     try:
         with open(path + '/sets/' + name + '.json') as f_obj:
@@ -332,6 +441,17 @@ def edit_sets():
 #edit_sets. The first step to editing sets. Shuffles the user around for-
 #-confirmation of what they exactly want to do.
 
+def txt_check_individual(comic, set):
+    counter = 1 
+    checkingtxt = comic['txt']
+    for dic in set:
+        if dic['txt'] == checkingtxt:
+            comic['txt'] = checkingtxt + str(counter)
+            counter += 1 
+    return comic  
+#txt_check_individual. checks a specifc comic against a set, and changes the text 
+#file of the comic if its in the set. This was written to fix a snafu with adding sets
+
 def add_set(set, name):
     name = name
     cname = input('Name\n')
@@ -341,11 +461,15 @@ def add_set(set, name):
     lks = 0 
     f = 0 
     comic = {'name': cname, 'url': url, 'txt': txt, 'pos': pos, 'lks': lks, 'f': f}
-    comic = set_pos_com(set, comic, name)
-    set.append(comic)
-    set = txt_check(set) 
+    comic = txt_check_individual(comic, set) 
     prime_comic(comic)
-
+    try:
+        comic = set_pos_com(set, comic, name)
+    except ValueError: 
+        print('The comic had an error with the most previous links. Manual links has not been implemented for editing sets yet.') 
+        os.remove(path + '/comics/' + comic['txt'] + '.txt')
+        return 0 
+    set.append(comic)
     m_handle(set, name)
 #add_set. Adds another comic to a set.
 
@@ -356,7 +480,7 @@ def m_handle(set, name):
     if dec.upper() == 'Y':
         add_set(set, name)
     if dec.upper() == 'N':
-        print(set)
+        devprint(set, name) 
         dec = input('Are you okay with the new set Y/N:')
         dec = dec.rstrip()
         if dec.upper() == 'Y':
@@ -381,13 +505,12 @@ def set_pos_com(set, comic, name):
     if ccomic.links == 'Something has gone wrong':
         comic['f'] = 1
     if comic['f'] == 0:
-        pos_link = input('What is the newest link for ' + comic['name'] + '?\n')
+        pos_link = input('What is the most previous link for ' + comic['name'] + '?\n')
         pos = ccomic.links.index(pos_link)
         comic['pos'] = pos
         return comic
     elif comic['f'] == 1:
           return comic 
-            
 #set_pos_com. Sets the positon of a comic not added in the creation of a set.
 
 def remove_set(set, name):
@@ -420,11 +543,11 @@ def remove_set(set, name):
         remove_set(set, name)
 #remove_set. Removes comics from sets. Bit of a misnomer on this one.
 
-def delete_set():
-    dec = input('You want to delete a set? Y/N \n')
+def delete_set(setname):
+    dec = input('You want to delete ' + setname + '  Y/N \n')
     dec = dec.rstrip()
     if dec.upper() == 'Y':
-        name = input('What set would you like to delete?\n')
+        name = setname
         try:
             with open(path + '/sets/' + name + '.json') as f_obj:
                 set = json.load(f_obj)
@@ -441,30 +564,33 @@ def delete_set():
 #delete_set. Deletes a set and it is related files in its enterity.
 
 def command_list():
-    print("""
-
-[\033[32m1\033[0m] :   make a new set of comics
-[\033[32m2\033[0m] :   check the comics within a specified set
-[\033[32m3\033[0m] :   view your sets
-[\033[32m4\033[0m] :   edit your sets
-[\033[32m5\033[0m] :   delete a set
-[\033[32m6\033[0m] :   information on how to use this program. You should run this first
-[\033[32m7\033[0m] :   list of commands
-quit:   close the program
-
-     """)
+    g = '\033[32m' 
+    n = '\033[0m' 
+    print(g + 'check' + n + '   : check the comics within a specified set') 
+    print(g + 'make' + n + '    : make a set') 
+    print(g + 'view' + n + '    : view sets, or view the comics of a speificed sets') 
+    print(g + 'edit' + n  +'    : edits a set') 
+    print(g + 'delete' + n +'  : deletes a set') 
+    print(g + 'info' + n +'    : information on how to use this promgram') 
+    print(g + 'help' + n +'    : information on the commands') 
+    print(g + 'quit' + n +'    : exit the program')  
 #command_list. Prints the list of primary commands availble to the user
 
 def info():
     print("""
-Hi, and welcome to Webcomic Checker. This program is a webscraping script
-that checks whether webcomics with inconsistent updating schedules have 
-updated or not en masse so that you don't have to do it by indiviudally checking 
-your comics in a browser. 
+Webcomic Checker is a webscraping script that checks whether webcomics with 
+inconsistent updating schedules have updated or not en masse so that you don't 
+have to do it by indiviudally checking your comics in a browser. 
 
 To use this program, you'll need to make a set. A set is a collection of comics which 
-can subsequently checked together.When creating a set, you will be asked to supply 
-two things: The name of of comic and the homepage url
+can subsequently checked together. You can invoke the 'make' action by entering "make set", 
+where set would be the name of the set your going to make. 
+
+When creating a set, you will have to supply the information on the comics in sequence. Each comic 
+will ultimatly require three things: The name of of comic, the homepage url, and the most previous link. 
+
+The name of the comic is the simplest thing. It doesn't even have to be the actual name of the 
+comic, this is just what the comic will be listed as when checking it in the future. 
 
 Lets talk about the url. You can find the url of your comic by visiting
 the site and copying the contents of the search bar. This should be the homepage
@@ -473,16 +599,17 @@ other identifiers appended to the end of the url. For most comics, this will
 display the most recent comic, but for some it won't. Just make sure you are
 entering the homepage url. 
 
-The program will ask you to name the set. After providing a name comes the final 
-part of setting up your set so I'll try to explain it as clearly as possible. 
+This next part is probably the most unintuitive, so I'll try to explain it in detail. 
 
 The program will display a 'previous link' prompt. This prompt is asking for 
-the link to the most previous comic. Most comics have a menu bar with directional 
+the link to the most previous comic. You can also think of the as the url of 
+the most previous comic. The majority of webcomics have a menu bar with directional 
 buttons to click to advance forward and backwards through the archive. From the 
 homepage (eg: the first url you submitted), clicking the back button should 
 bring you to to a previous comic. The link to this comic is what you need to provide 
 for this prompt. This link is needed so that internally for the checking of the 
-comic. 
+comic. You can either copy it directly from the element on the page, or just go back to the 
+most previous comic and copy the url in the searchbar. 
 
 If everything goes to plan, that should be it. However, there is a chance that
 the most previous link wont exaclty match up what it actually is behind the scences.
@@ -496,25 +623,51 @@ from zero, because thats where computers start at.
 
 ---------------------------------------------------------------------------
 
-Prompts and Particularities
+    """
+    )
+#info. Prints information on the program
 
-At times, you will be given a Y/N prompt. This a simple yes or no question
-and you only have to input a singular 'y' or 'n' to denote your response
+def help():
+    g = '\033[32m' 
+    n = '\033[0m' 
+    print(g + 'check' + n + '   : check the comics within a specified set') 
+    print(g + 'make' + n + '    : make a set') 
+    print(g + 'view' + n + '    : view sets, or view the comics of a speificed sets') 
+    print(g + 'edit' + n  +'    : edits a set') 
+    print(g + 'delete' + n +'  : deletes a set') 
+    print(g + 'info' + n +'    : information on how to use this promgram') 
+    print(g + 'help' + n +'    : information on the commands') 
+    print(g + 'quit' + n +'    : exit the program')  
+
+    print() 
+
+    print("Commands should be formated as 'action' 'set', with a single space inbetween the action and the set") 
+
+    print() 
+
+    print("Info, help, and quit do not need sets to be invoked") 
+    print("""
+View can either be invoked with or without a set. When invoked with a
+set, it will list the comics in that specifc set. When invoked with nothing, 
+it will list all availble sets and prompt the user if they want to look at 
+the comics of a specifc set
+""") 
+
+    print("""
+---------------------------
+Prompts and Particularities
+---------------------------
+
+The Y/N prompt requires onlya a singular 'y' or 'n' to denote your response
 
 For the most part, inputing the wrong command or string will cause whatever
 action you're performing to default back to the main prompt.
 
-When using this program, you should maximize your window. Text can be affected
-by the edge of the border.
-
 Some comics just flat out don't work with this program :p If this happens, the 
 offending comic will be removed automatically.
 
-Now you are all done! I hope you make use of this program.
+""")
 
-    """
-    )
-#info. Prints information on the program
 
 def header():
 
